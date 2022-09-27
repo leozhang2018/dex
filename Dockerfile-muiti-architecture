@@ -20,7 +20,7 @@ COPY . .
 
 RUN make release-binary
 
-FROM alpine:3.14.0 AS gomplate
+FROM alpine:3.16.2 AS gomplate
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -34,7 +34,7 @@ RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gompla
 RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
   && chmod +x /usr/local/bin/gomplate-arm64
 
-FROM alpine:3.14.0
+FROM alpine:3.16.2
 
 ARG TARGETARCH
 
