@@ -11,6 +11,7 @@ ARG TARGETVARIANT=""
 
 ENV GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT}
 ENV GOPROXY=https://goproxy.cn,direct
+ENV GOCACHE=/gocache
 
 COPY go.mod go.sum ./
 COPY api/v2/go.mod api/v2/go.sum ./api/v2/
@@ -18,7 +19,7 @@ RUN go mod download
 
 COPY . .
 
-RUN make release-binary
+RUN --mount=type=cache,id=gobuild,target=/gocache make release-binary
 
 FROM alpine:3.14.0 AS gomplate
 
