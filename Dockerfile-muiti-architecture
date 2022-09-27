@@ -1,0 +1,73 @@
+FROM golang:1.16.6-alpine3.13 AS builder
+
+WORKDIR /usr/local/src/dex
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN apk add --no-cache --update alpine-sdk
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT=""
+
+ENV GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT}
+ENV GOPROXY=https://goproxy.cn,direct
+
+COPY go.mod go.sum ./
+COPY api/v2/go.mod api/v2/go.sum ./api/v2/
+RUN go mod download
+
+COPY . .
+
+RUN make release-binary
+
+FROM alpine:3.14.0 AS gomplate
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV GOMPLATE_VERSION=v3.9.0
+
+RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gomplate_linux-amd64" \
+  && chmod +x /usr/local/bin/gomplate-amd64
+
+RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
+  && chmod +x /usr/local/bin/gomplate-arm64
+
+FROM alpine:3.14.0
+
+ARG TARGETARCH
+
+# Dex connectors, such as GitHub and Google logins require root certificates.
+# Proper installations should manage those certificates, but it's a bad user
+# experience when this doesn't work out of the box.
+#
+# OpenSSL is required so wget can query HTTPS endpoints for health checking.
+RUN apk add --no-cache --update ca-certificates openssl
+
+RUN mkdir -p /var/dex
+RUN chown -R 1001:1001 /var/dex
+
+RUN mkdir -p /etc/dex
+COPY config.docker.yaml /etc/dex/
+RUN chown -R 1001:1001 /etc/dex
+
+# Copy module files for CVE scanning / dependency analysis.
+COPY --from=builder /usr/local/src/dex/go.mod /usr/local/src/dex/go.sum /usr/local/src/dex/
+COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/go.sum /usr/local/src/dex/api/v2/
+
+COPY --from=builder /go/bin/dex /usr/local/bin/dex
+COPY --from=builder /usr/local/src/dex/web /srv/dex/web
+
+COPY --from=gomplate /usr/local/bin/gomplate-${TARGETARCH} /usr/local/bin/gomplate
+
+USER 1001:1001
+
+COPY docker-entrypoint.sh /entrypoint.sh
+
+ENV DEX_FRONTEND_DIR=/srv/dex/custom-web
+
+COPY --chown=root:root custom-web /srv/dex/custom-web
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["dex", "serve", "/etc/dex/config.docker.yaml"]
