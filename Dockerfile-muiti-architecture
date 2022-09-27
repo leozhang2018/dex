@@ -21,19 +21,19 @@ COPY . .
 
 RUN --mount=type=cache,id=gobuild,target=/gocache make release-binary
 
-FROM alpine:3.14.0 AS gomplate
-
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-
-ENV GOMPLATE_VERSION=v3.9.0
-
-RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gomplate_linux-amd64" \
-  && chmod +x /usr/local/bin/gomplate-amd64
-
-RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
-  && chmod +x /usr/local/bin/gomplate-arm64
+#FROM alpine:3.14.0 AS gomplate
+#
+#ARG TARGETOS
+#ARG TARGETARCH
+#ARG TARGETVARIANT
+#
+#ENV GOMPLATE_VERSION=v3.9.0
+#
+#RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gomplate_linux-amd64" \
+#  && chmod +x /usr/local/bin/gomplate-amd64
+#
+#RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
+#  && chmod +x /usr/local/bin/gomplate-arm64
 
 FROM alpine:3.14.0
 
