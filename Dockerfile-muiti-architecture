@@ -11,6 +11,7 @@ ARG TARGETVARIANT=""
 
 ENV GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT}
 ENV GOPROXY=https://goproxy.cn,direct
+ENV GOCACHE=/gocache
 
 COPY go.mod go.sum ./
 COPY api/v2/go.mod api/v2/go.sum ./api/v2/
@@ -18,21 +19,21 @@ RUN go mod download
 
 COPY . .
 
-RUN make release-binary
+RUN --mount=type=cache,id=gobuild,target=/gocache make release-binary
 
-FROM alpine:3.14.0 AS gomplate
-
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-
-ENV GOMPLATE_VERSION=v3.9.0
-
-RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gomplate_linux-amd64" \
-  && chmod +x /usr/local/bin/gomplate-amd64
-
-RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
-  && chmod +x /usr/local/bin/gomplate-arm64
+#FROM alpine:3.14.0 AS gomplate
+#
+#ARG TARGETOS
+#ARG TARGETARCH
+#ARG TARGETVARIANT
+#
+#ENV GOMPLATE_VERSION=v3.9.0
+#
+#RUN wget -O /usr/local/bin/gomplate-amd64 "https://resource.koderover.com/gomplate_linux-amd64" \
+#  && chmod +x /usr/local/bin/gomplate-amd64
+#
+#RUN wget -O /usr/local/bin/gomplate-arm64 "https://resource.koderover.com/gomplate_linux-arm64" \
+#  && chmod +x /usr/local/bin/gomplate-arm64
 
 FROM alpine:3.14.0
 
@@ -59,8 +60,8 @@ COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/g
 COPY --from=builder /go/bin/dex /usr/local/bin/dex
 COPY --from=builder /usr/local/src/dex/web /srv/dex/web
 
-#COPY --from=gomplate /usr/local/bin/gomplate-${TARGETARCH} /usr/local/bin/gomplate
 COPY bins/gomplate-${TARGETARCH} /usr/local/bin/gomplate
+RUN chmod +x /usr/local/bin/gomplate
 
 USER 1001:1001
 
