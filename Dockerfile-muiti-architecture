@@ -60,8 +60,6 @@ COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/g
 COPY --from=builder /go/bin/dex /usr/local/bin/dex
 COPY --from=builder /usr/local/src/dex/web /srv/dex/web
 
-#COPY --from=gomplate /usr/local/bin/gomplate-${TARGETARCH} /usr/local/bin/gomplate
-#RUN chmod +x bins/gomplate-${TARGETARCH}
 COPY bins/gomplate-${TARGETARCH} /usr/local/bin/gomplate
 RUN chmod +x /usr/local/bin/gomplate
 
