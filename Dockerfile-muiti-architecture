@@ -63,7 +63,7 @@ COPY --from=builder /usr/local/src/dex/web /srv/dex/web
 #COPY --from=gomplate /usr/local/bin/gomplate-${TARGETARCH} /usr/local/bin/gomplate
 #RUN chmod +x bins/gomplate-${TARGETARCH}
 COPY bins/gomplate-${TARGETARCH} /usr/local/bin/gomplate
-RUN chmod +x bins/gomplate-${TARGETARCH}
+RUN chmod +x /usr/local/bin/gomplate
 
 USER 1001:1001
 
