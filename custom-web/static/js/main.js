@@ -5,7 +5,7 @@ const port = window.location.port;
 // login();
 var dex = new Vue({
     el: "#dex-login",
-    delimiters: ["{{{", "}}}"],
+    delimiters: ["<<<", ">>>"],
     data: {
         loginForm: {
             account: "",
