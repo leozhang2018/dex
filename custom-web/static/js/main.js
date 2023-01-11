@@ -15,6 +15,11 @@ var dex = new Vue({
         showLoginError:false,
         showPassword:false
     },
+    computed:{
+        year(){
+            return new Date().getFullYear()
+        }
+    },
     methods: {
         async login() {
             const payload = this.loginForm;
